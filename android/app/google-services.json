@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "683029880054",
+    "project_id": "olxfirebasereact-31aea",
+    "storage_bucket": "olxfirebasereact-31aea.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:683029880054:android:a4bb679c8d911e020720d7",
+        "android_client_info": {
+          "package_name": "com.fire"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBx9fcUWCCwCPKg1JJWhU1sgADxPi-UEsc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
