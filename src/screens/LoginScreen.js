@@ -50,6 +50,9 @@ const LoginScreen = ({navigation}) => {
 <Button icon="camera" mode="contained" onPress={() => userLogin()}>
     login
   </Button>
+  <Button icon="camera" mode="contained" onPress={() => navigation.navigate("FireCheck")}>
+   topics
+  </Button>
 <TouchableOpacity onPress={()=>navigation.navigate("signup")}>
   <Text style={{textAlign:"center"}}>dont have account?</Text>
   </TouchableOpacity>

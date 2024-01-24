@@ -1,152 +1,86 @@
-import { Alert, StyleSheet, Text, View } from 'react-native'
-import React, { useState } from 'react'
-
-import { TextInput,Button } from 'react-native-paper';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Button } from 'react-native';
+import messaging from '@react-native-firebase/messaging';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
-import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
-import storage from '@react-native-firebase/storage';
-import messaging from '@react-native-firebase/messaging';
-
 
 const CreateAdScreen = () => {
-    const [name,setName]=useState('');
-    const [desc,setDesc]=useState('');
-    const [year,setYear]=useState('');
-    const [price,setPrice]=useState('');
-    const [phone,setPhone]=useState('');
-    const [image,setImage]=useState('');
+  const [deviceToken, setDeviceToken] = useState(null);
 
-const sendNoti=()=>{
-  firestore().collection('usertoken').get().then(querySnap=>{
-    const userDevicetoken=querySnap.docs.map(docSnap=>{
-      return docSnap.data().token
-    })
-    console.log(userDevicetoken)
-    fetch('https://7076-103-211-36-30.ngrok-free.app/send-noti',{
-                method:'post',
-                headers: {
-                    'Content-Type': 'application/json'
-                     
-                  },
-                body:JSON.stringify({
-                    tokens:userDevicetoken
-                })   
-            })
-  })
-}
+  useEffect(() => {
+    // Request permission for push notifications (if not already granted)
+    const requestNotificationPermission = async () => {
+      try {
+        await messaging().requestPermission();
+      } catch (error) {
+        console.error('Error requesting notification permission:', error);
+      }
+    };
 
-    
+    requestNotificationPermission();
 
-  const postData=async()=>{
-    try{
-      await firestore().collection('ads')
-      .add({
-        name,
-        desc,
-        year,
-        price,
-        phone,
-        image:"https://images.unsplash.com/photo-1705468616275-616b7c01d317?q=80&w=1927&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-        uid:auth().currentUser.uid
-      })
-      Alert.alert("posted")
-    }catch(err){
-      Alert.alert("wrong")
+    // Get the current device token
+    const getDeviceToken = async () => {
+      try {
+        const token = await messaging().getToken();
+        console.log('Device Token:', token);
+
+        // Set the device token in state for later use
+        setDeviceToken(token);
+
+        // Get the UID of the current user (replace this with your authentication logic)
+        const currentUserUID = auth().currentUser.uid;
+
+        // Store the device token in Firestore along with the UID
+        await firestore().collection('usertoken').doc(currentUserUID).set({
+          token: token,
+          timestamp: firestore.FieldValue.serverTimestamp(),
+        });
+
+        console.log('Device Token stored in Firestore for UID:', currentUserUID);
+      } catch (error) {
+        console.error('Error getting or storing device token:', error);
+      }
+    };
+
+    getDeviceToken();
+  }, []);
+
+  const sendTokenToAPI = async () => {
+    console.log("in api")
+    try {
+      if (deviceToken) {
+        // Send the device token to your API
+        const response = await fetch('https://testamaan.onrender.com/send-noti', {
+  method: 'post',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    tokens: [deviceToken],
+  }),
+});
+
+const responseText = await response.text();
+console.log('Raw response from the server:', responseText);
+
+
+        const responseData = await response.json();
+        console.log('API response:', responseData);
+      } else {
+        console.error('Device token not available.');
+      }
+    } catch (error) {
+      console.error('Error sending device token to API:', error);
     }
-    
-
-  }
-
-  const openCamera = ()=>{
-    launchImageLibrary({quality:0.5},(fileobj)=>{
-        //    console.log(fileobj)
-        const uploadTask =  storage().ref().child(`/items/${Date.now()}`).putFile(fileobj.assets[0].uri)
-        uploadTask.on('state_changed', 
-        (snapshot) => {
-           
-            var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-             if(progress==100){alert("uploaded")}
-        }, 
-        (error) => {
-          console.log(error)
-           alert("something went wrong")
-        }, 
-        () => {
-            // Handle successful uploads on complete
-            // For instance, get the download URL: https://firebasestorage.googleapis.com/...
-            uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-               
-               // setImage(downloadURL)
-            });
-        }
-        );
-       })
-   }
-
-
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>CreateAdScreen</Text>
-      <TextInput
-      label=" ad title"
-      value={name}
-      mode='outlined'
-      onChangeText={text => setName(text)}
-    />
-    <TextInput
-      label=" Describe what you are selling!"
-      value={desc}
-      mode='outlined'
-      numberOfLines={3}
-      multiline={true}
-      onChangeText={text => setDesc(text)}
-    />
-    <TextInput
-      label=" year of purchase"
-      value={year}
-      mode='outlined'
-      keyboardType="numeric"
-      onChangeText={text => setYear(text)}
-    />
-    <TextInput
-      label="price in inr"
-      value={price}
-      mode='outlined'
-      keyboardType="numeric"
-      onChangeText={text => setPrice(text)}
-    />
-    <TextInput
-      label="ypur contact"
-      value={phone}
-      mode='outlined'
-      keyboardType="numeric"
-      onChangeText={text => setPhone(text)}
-    />
-    <Button icon="camera" mode="contained" onPress={() =>openCamera() }>
-    upload image
-  </Button>
-  <Button   mode="contained" onPress={() =>postData() }>
-    post
-  </Button>
-  <Button   mode="contained" onPress={() =>sendNoti() }>
-    test noti
-  </Button>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>Getting Device Token...</Text>
+      <Button title="Send Device Token to API" onPress={sendTokenToAPI} />
     </View>
-  )
-}
+  );
+};
 
-export default CreateAdScreen
-
-const styles = StyleSheet.create({
-    container:{
-        flex:1,
-        marginHorizontal:30,
-        justifyContent:"space-evenly"
-    },
-    text:{
-        fontSize:22,
-        textAlign:"center"
-    }
-})
+export default CreateAdScreen;

@@ -19,17 +19,22 @@ const userSignup=async()=>{
 }
   try{
     await auth().createUserWithEmailAndPassword(email,password)
-    messaging().getToken().then(token=>{
+   messaging().getToken().then(token=>{
      firestore().collection('usertoken').add({
       token:token
      })
     })
+    
+  
 }catch(err){
   Alert.alert("something went wrong")
 }
  
 
 }
+
+
+
 
   return (
     <KeyboardAvoidingView behavior='position'>

@@ -16,6 +16,7 @@ import Feather from 'react-native-vector-icons/Feather'
 import AccountScreen from './screens/AccountScreen';
 import auth from '@react-native-firebase/auth';
 import messaging from '@react-native-firebase/messaging';
+import FireCheck from './screens/FireCheck';
 
 
 
@@ -50,6 +51,11 @@ const AuthNavigator=()=>{
     <Stack.Navigator>
         <Stack.Screen name="login" component={LoginScreen} options={{headerShown:false}} />
         <Stack.Screen name="signup" component={SignupScreen} options={{headerShown:false}} />
+        <Stack.Screen name="FireCheck" component={FireCheck} options={{headerShown:false}} />
+        <Stack.Screen name="CreateAdScreen" component={CreateAdScreen} options={{headerShown:false}} />
+      
+
+
       </Stack.Navigator>
   )
 };
